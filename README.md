@@ -36,6 +36,9 @@
 ``` import pandas as pd ```
 ``` import numpy as np ```
 
+## Instructions
+##### Run unfccc-query.py and .csv files will be created in the current directory. Note that the process may take up to 30 minutes or more.
+
 ## Credits
 ###### This scraper was designed by a team organized by Greg Hay consisting of Parsa Khazaeepoul, Max Wang, Russell Eng, and Calvin Chan at the University of Washington for [WattTime](https://www.watttime.org/) and [The Green Software Foundation](https://greensoftware.foundation/manifesto) and integrates the [UNFCCC DI API](https://unfccc-di-api.readthedocs.io/en/stable/index.html), credited below.
 *Mika Pflüger, Daniel Huppmann & Johannes Gütschow. (2021-12-03). pik-primap/unfccc_di_api: Version 3.0.1. Zenodo. https://doi.org/10.5281/zenodo.5751935*
