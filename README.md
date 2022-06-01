@@ -45,4 +45,4 @@
 
 ###### Want to utilize this data scraper and credit us?
 
-*Parsa Khazaeepoul, Max Wang, Russell Eng, and Calvin Chan. (05-31-2022). UNFCCC Flexible Queries Data Scraper: Version 0.0.1. Github. https://github.com/thisrepo.*
+*Parsa Khazaeepoul, Max Wang, Russell Eng, and Calvin Chan. (05-31-2022). UNFCCC Flexible Queries Data Scraper: Version 0.0.1. Github. https://github.com/maxjj9710/unfccc-query.*
