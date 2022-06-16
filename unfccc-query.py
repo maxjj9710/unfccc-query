@@ -249,7 +249,7 @@ def main():
     measure_type_df.to_csv('./all_measures_types.csv')
     measure_df.to_csv('./measures.csv')
     category_df.to_csv('./categories.csv')
-    query_df.to_csv('queries_test.csv')
+    query_df.to_csv('./queries.csv')
 
 
 

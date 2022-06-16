@@ -1,0 +1,5 @@
+# Running 'pip install -r requirements.txt' in your command line terminal will install the following required libraries.
+unfccc_di_api == 3.0.1
+pandas == 1.4.2
+treelib == 1.6.1
+numpy == 1.22.4
