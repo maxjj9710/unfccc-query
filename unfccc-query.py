@@ -7,6 +7,7 @@ import numpy as np
 
 # Initializing API Readers for both Annex I and Non-Annex I inventory data
 
+
 annex1_reader = unfccc_di_api.UNFCCCSingleCategoryApiReader(party_category='annexOne')
 nannex1_reader = unfccc_di_api.UNFCCCSingleCategoryApiReader(party_category='nonAnnexOne')
 print('API Connected')
@@ -14,53 +15,66 @@ print('API Connected')
 
 ##########################################
 # Units
-
-all_units = pd.concat([annex1_reader.units, nannex1_reader.units], ignore_index=False).drop_duplicates() # combining results from both inventory
-all_units.to_csv('./units.csv', header=True)
-
+def get_unit_df():
+    print("Begin to fetch units from API")
+    result = pd.concat([annex1_reader.units, nannex1_reader.units], ignore_index=False).drop_duplicates() # combining results from both inventory
+    print("Finished fetching units from API")
+    return result
 
 ##########################################
 # Gases
-
-all_gases = pd.concat([annex1_reader.gases, nannex1_reader.gases], ignore_index=False).drop_duplicates() # combining results from both inventory
-all_gases.to_csv('./gases.csv', header=True)
+def get_gas_df():
+    print("Begin to fetch gases from API")
+    result = pd.concat([annex1_reader.gases, nannex1_reader.gases], ignore_index=False).drop_duplicates() # combining results from both inventory
+    print("Finished fetching gases from API")
+    return result
 
 
 ##########################################
 # Classifications
-
-all_classifications = pd.concat([annex1_reader.classifications, nannex1_reader.classifications], ignore_index=False).drop_duplicates() # combining results from both inventory
-all_classifications.to_csv('./classifications.csv')
+def get_class_df():
+    print("Begin to fetch classifications from API")
+    result = pd.concat([annex1_reader.classifications, nannex1_reader.classifications], ignore_index=False).drop_duplicates() # combining results from both inventory
+    print("Finished fetching classifications from API")
+    return result
 
 
 ##########################################
 # Years
-
-all_years = pd.concat([annex1_reader.years, nannex1_reader.years], ignore_index=False).drop_duplicates() # combining results from both inventory
-all_years.to_csv('./years.csv')
+def get_year_df():
+    print("Begin to fetch years from API")
+    result = pd.concat([annex1_reader.years, nannex1_reader.years], ignore_index=False).drop_duplicates() # combining results from both inventory
+    print("Finished fetching years from API")
+    return result
 
 
 ##########################################
 # Annex
 # Not initially part of the API, but could be useful for differentiation for databases
+def get_annex_df():
+    print("Begin to fetch annex from API")
+    annex_array = np.array([[0, 'Non-Annex I', 'Countries considered by UN as developing countries'],
+                            [1, 'Annex I', 'Countries considered by UN as developed countries']])
+    result = pd.DataFrame(annex_array, columns=['AnnexID', 'AnnexName', 'AnnexDescr'])
+    print("Finished fetching annex from API")
+    return result
 
-annex_array = np.array([[0, 'Non-Annex I', 'Countries considered by UN as developing countries'],
-                        [1, 'Annex I', 'Countries considered by UN as developed countries']])
-annex_df = pd.DataFrame(annex_array, columns=['AnnexID', 'AnnexName', 'AnnexDescr'])
-annex_df.set_index('AnnexID').to_csv('./annexes.csv')
 
 
 ##########################################
 # Parties (Countries)
+def get_party_df():
+    print("Begin to fetch parties from API")
+    n_parties = nannex1_reader.parties
+    a_parties = annex1_reader.parties
 
-n_parties = nannex1_reader.parties
-a_parties = annex1_reader.parties
+    # appending foreign key
+    n_parties['AnnexID'] = 0
+    a_parties['AnnexID'] = 1
+    result = pd.concat([n_parties, a_parties], ignore_index=False).drop_duplicates().drop('noData', axis=1)
+    print("Finished fetching parties from API")
+    return result
 
-# appending foreign key
-n_parties['AnnexID'] = 0
-a_parties['AnnexID'] = 1
-all_parties = pd.concat([n_parties, a_parties], ignore_index=False).drop_duplicates().drop('noData', axis=1)
-all_parties.to_csv('./parties.csv')
 
 
 ##########################################
@@ -72,27 +86,30 @@ all_parties.to_csv('./parties.csv')
 #       the primary key
 
 # Annex I
-a_mt_root = annex1_reader.measure_tree.all_nodes()[0].identifier  # referencing root
-a_mt_nodes = annex1_reader.measure_tree.children(a_mt_root)
-a_mt_array = []
+def get_measure_type_df():
+    print("Begin to fetch measurement types from API")
+    a_mt_root = annex1_reader.measure_tree.all_nodes()[0].identifier  # referencing root
+    a_mt_nodes = annex1_reader.measure_tree.children(a_mt_root)
+    a_mt_array = []
 
-for node in a_mt_nodes:
-    a_mt_array.append([node.identifier, node.tag])
+    for node in a_mt_nodes:
+        a_mt_array.append([node.identifier, node.tag])
 
-a_mt_df = pd.DataFrame(np.array(a_mt_array), columns=['MeasureTypeID', 'MeasureTypeName'])
+    a_mt_df = pd.DataFrame(np.array(a_mt_array), columns=['MeasureTypeID', 'MeasureTypeName'])
 
-# Non-Annex I
-n_mt_root = nannex1_reader.measure_tree.all_nodes()[0].identifier  # referencing root
-n_mt_nodes = nannex1_reader.measure_tree.children(n_mt_root)
-n_mt_array = []
-for node in n_mt_nodes:
-    n_mt_array.append([node.identifier, node.tag])
+    # Non-Annex I
+    n_mt_root = nannex1_reader.measure_tree.all_nodes()[0].identifier  # referencing root
+    n_mt_nodes = nannex1_reader.measure_tree.children(n_mt_root)
+    n_mt_array = []
+    for node in n_mt_nodes:
+        n_mt_array.append([node.identifier, node.tag])
 
-n_mt_df = pd.DataFrame(np.array(n_mt_array), columns=['MeasureTypeID', 'MeasureTypeName'])
+    n_mt_df = pd.DataFrame(np.array(n_mt_array), columns=['MeasureTypeID', 'MeasureTypeName'])
 
-# Combined
-all_mt = pd.concat([a_mt_df, n_mt_df], ignore_index=False).drop_duplicates()
-all_mt.set_index('MeasureTypeID').to_csv('./all_measures_types.csv')
+    # Combined
+    result = pd.concat([a_mt_df, n_mt_df], ignore_index=False).drop_duplicates().set_index('MeasureTypeID')
+    print("Finished fetching measurement types from API")
+    return result
 
 
 ##########################################
@@ -103,30 +120,34 @@ all_mt.set_index('MeasureTypeID').to_csv('./all_measures_types.csv')
 #       the primary key
 
 # Annex I
-a_measure_array = []
+def get_measure_df(all_mt):
+    print("Begin to fetch measurements from API")
+    a_measure_array = []
 
-for mt in all_mt['MeasureTypeID']:
-    children = annex1_reader.measure_tree.children(int(mt))
+    for mt in all_mt['MeasureTypeID']:
+        children = annex1_reader.measure_tree.children(int(mt))
 
-    for node in children:
-        a_measure_array.append([node.identifier, int(mt), node.tag])
+        for node in children:
+            a_measure_array.append([node.identifier, int(mt), node.tag])
 
-a_measure_df = pd.DataFrame(np.array(a_measure_array), columns=['MeasureID', 'MeasureTypeID', 'MeasureName'])
+    a_measure_df = pd.DataFrame(np.array(a_measure_array), columns=['MeasureID', 'MeasureTypeID', 'MeasureName'])
 
-# Non-Annex I
-n_measure_array = []
+    # Non-Annex I
+    n_measure_array = []
 
-for mt in all_mt['MeasureTypeID']:
-    children = nannex1_reader.measure_tree.children(int(mt))
+    for mt in all_mt['MeasureTypeID']:
+        children = nannex1_reader.measure_tree.children(int(mt))
 
-    for node in children:
-        n_measure_array.append([node.identifier, int(mt), node.tag])
+        for node in children:
+            n_measure_array.append([node.identifier, int(mt), node.tag])
 
-n_measure_df = pd.DataFrame(np.array(n_measure_array), columns=['MeasureID', 'MeasureTypeID', 'MeasureName'])
+    n_measure_df = pd.DataFrame(np.array(n_measure_array), columns=['MeasureID', 'MeasureTypeID', 'MeasureName'])
 
-# Combined
-all_measures = pd.concat([a_measure_df, n_measure_df], ignore_index=False).drop_duplicates()
-all_measures.set_index('MeasureID').to_csv('./measures.csv')
+    # Combined
+    result = pd.concat([a_measure_df, n_measure_df], ignore_index=False).drop_duplicates().set_index('MeasureID')
+    print("Finished fetching measurements from API")
+    return result
+
 
 
 ##########################################
@@ -159,17 +180,20 @@ def format_category(cid, reader, curr_array, depth):
 
     return curr_array
 
+def get_category_df():
+    print("Begin to fetch categories from API")
+    a_root_array = np.array([annex1_reader.category_tree.all_nodes()[0].identifier, '', 'Totals', 0])
+    n_root_array = np.array([nannex1_reader.category_tree.all_nodes()[0].identifier, '', 'Totals', 0])
+    a_formatted_category = format_category(int(a_root_array[0]), annex1_reader, a_root_array, 0)
+    n_formatted_category = format_category(int(n_root_array[0]), nannex1_reader, n_root_array, 0)
 
-a_root_array = np.array([annex1_reader.category_tree.all_nodes()[0].identifier, '', 'Totals', 0])
-n_root_array = np.array([nannex1_reader.category_tree.all_nodes()[0].identifier, '', 'Totals', 0])
-a_formatted_category = format_category(int(a_root_array[0]), annex1_reader, a_root_array, 0)
-n_formatted_category = format_category(int(n_root_array[0]), nannex1_reader, n_root_array, 0)
+    a_category_df = pd.DataFrame(a_formatted_category, columns=['CategoryID', 'Tag', 'CategoryName', 'Depth'])
+    n_category_df = pd.DataFrame(n_formatted_category, columns=['CategoryID', 'Tag', 'CategoryName', 'Depth'])
 
-a_category_df = pd.DataFrame(a_formatted_category, columns=['CategoryID', 'Tag', 'CategoryName', 'Depth'])
-n_category_df = pd.DataFrame(n_formatted_category, columns=['CategoryID', 'Tag', 'CategoryName', 'Depth'])
-
-all_category = pd.concat([a_category_df, n_category_df], ignore_index=False).drop_duplicates()
-all_category.set_index('CategoryID').to_csv('./categories.csv')
+    result_df, a_category_length = pd.concat([a_category_df, n_category_df], ignore_index=False).\
+                                       drop_duplicates().set_index('CategoryID'),len(a_category_df)
+    print("Finished fetching categories from API")
+    return result_df, a_category_length
 
 
 ##########################################
@@ -177,29 +201,54 @@ all_category.set_index('CategoryID').to_csv('./categories.csv')
 # Using party codes from both readers and Category IDs to query all data values from the API.
 # Runtime of the queries could be >30 minutes.
 
-a_party_codes = annex1_reader.parties['code']
-n_party_codes = nannex1_reader.parties['code']
-category_ids = list(map(int, all_category['CategoryID']))
+def get_query_df(all_category, annex_cutoff):
+    print("Begin to fetch queries from API")
+    a_party_codes = annex1_reader.parties['code']
+    n_party_codes = nannex1_reader.parties['code']
+    category_ids = list(map(int, all_category['CategoryID']))
 
-query_df = pd.DataFrame()
+    query_df = pd.DataFrame()
 
-for cid in category_ids[:len(a_category_df)]:
-    try:
-        query = annex1_reader.query(party_codes=a_party_codes, category_ids=[cid])
-    except unfccc_di_api.NoDataError:
-        continue
-    else:
-        query_df = pd.concat([query_df, query], ignore_index=True)
+    for cid in category_ids[:annex_cutoff]:
+        try:
+            query = annex1_reader.query(party_codes=a_party_codes, category_ids=[cid])
+        except unfccc_di_api.NoDataError:
+            continue
+        else:
+            query_df = pd.concat([query_df, query], ignore_index=True)
 
-for cid in category_ids[len(a_category_df):]:
-    try:
-        query = nannex1_reader.query(party_codes=n_party_codes, category_ids=[cid])
-    except unfccc_di_api.NoDataError:
-        continue
-    else:
-        query_df = pd.concat([query_df, query], ignore_index=True)
+    for cid in category_ids[annex_cutoff:]:
+        try:
+            query = nannex1_reader.query(party_codes=n_party_codes, category_ids=[cid])
+        except unfccc_di_api.NoDataError:
+            continue
+        else:
+            query_df = pd.concat([query_df, query], ignore_index=True)
 
-query_df.to_csv('queries_test.csv')
+    print("Finished fetching queries from API")
+    return query_df
 
+
+def main():
+    unit_df = get_unit_df()
+    gas_df = get_gas_df()
+    class_df = get_class_df()
+    year_df = get_year_df()
+    annex_df = get_annex_df()
+    party_df = get_party_df()
+    measure_type_df = get_measure_type_df()
+    measure_df = get_measure_df(measure_type_df)
+    category_df, annex_cutoff = get_category_df()
+    query_df = get_query_df(category_df, annex_cutoff)
+    unit_df.to_csv('./units.csv', header=True)
+    gas_df.to_csv('./gases.csv', header=True)
+    class_df.to_csv('./classifications.csv')
+    year_df.to_csv('./years.csv')
+    annex_df.to_csv('./annexes.csv')
+    party_df.to_csv('./parties.csv')
+    measure_type_df.to_csv('./all_measures_types.csv')
+    measure_df.to_csv('./measures.csv')
+    category_df.to_csv('./categories.csv')
+    query_df.to_csv('queries_test.csv')
 
 
