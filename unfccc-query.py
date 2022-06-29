@@ -55,6 +55,10 @@ def get_class_df():
 ##########################################
 # Years
 def get_year_df():
+    """
+    Fetches all years present in both annex readers.
+    :return: Pandas dataframe containing all years from the API.
+    """
     print("Beginning to fetch years from API")
     result = pd.concat([annex1_reader.years, nannex1_reader.years],
                        ignore_index=False).drop_duplicates()  # combining results from both inventory
