@@ -42,6 +42,10 @@ def get_gas_df():
 ##########################################
 # Classifications
 def get_class_df():
+    """
+    Fetches all classifications present in both annex readers.
+    :return: Pandas dataframe containing all classifications from the API.
+    """
     print("Beginning to fetch classifications from API")
     result = pd.concat([annex1_reader.classifications, nannex1_reader.classifications], ignore_index=False).drop_duplicates() # combining results from both inventory
     print("Finished fetching classifications from API")
