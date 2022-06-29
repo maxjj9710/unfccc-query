@@ -19,7 +19,7 @@ print('API Connected')
 def get_unit_df():
     """
     Fetches all units present in both annex readers.
-    :return: Pandas dataframe containing all unit from the API.
+    :return: Pandas dataframe containing all units from the API.
     """
     print("Beginning to fetch units from API")
     result = pd.concat([annex1_reader.units, nannex1_reader.units], ignore_index=False).drop_duplicates() # combining results from both inventory
@@ -30,8 +30,8 @@ def get_unit_df():
 # Gases
 def get_gas_df():
     """
-    Fetches all units present in both annex readers.
-    :return:
+    Fetches all gases present in both annex readers.
+    :return: Pandas dataframe containing all gases from the API.
     """
     print("Beginning to fetch gases from API")
     result = pd.concat([annex1_reader.gases, nannex1_reader.gases], ignore_index=False).drop_duplicates() # combining results from both inventory
