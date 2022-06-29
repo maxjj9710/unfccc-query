@@ -78,6 +78,10 @@ def get_year_df():
 # Annex
 # Not initially part of the API, but could be useful for differentiation for databases
 def get_annex_df():
+    """
+    Fetches annex and non-annex list from the API.
+    :return: Pandas dataframe containing annex and non-annex list from the API.
+    """
     print("Beginning to fetch annex from API")
     annex_array = np.array([[0, 'Non-Annex I', 'Countries considered by UN as developing countries'],
                             [1, 'Annex I', 'Countries considered by UN as developed countries']])
@@ -90,6 +94,10 @@ def get_annex_df():
 ##########################################
 # Parties (Countries)
 def get_party_df():
+    """
+    Fetches countries from annex and non-annex list from the API.
+    :return: Pandas dataframe containing countries from annex and non-annex list in the API.
+    """
     print("Beginning to fetch parties from API")
     n_parties = nannex1_reader.parties
     a_parties = annex1_reader.parties
@@ -193,7 +201,7 @@ def format_category(cid, tree, curr_array, depth):
     :param tree: Deep copied category treelib object
     :param curr_array: Current array containing all categories
     :param depth: Depth level of current node with respect to the treelib
-    :return: array contain all categories in the passed-in API reader
+    :return: Array contain all categories in the passed-in API reader
     """
     depth = depth + 1
     nodes = tree.children(cid)
