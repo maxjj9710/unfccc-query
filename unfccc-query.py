@@ -161,6 +161,7 @@ def get_measure_type_df():
 def get_measure_df(all_mt):
     """
     Fetches measurements from annex and non-annex list from the API.
+    :param all_mt: Measurement type for each measurment
     :return: Pandas dataframe containing measurements from annex and non-annex list in the API.
     """
     print("Beginning to fetch measurements from API")
@@ -233,6 +234,10 @@ def format_category(cid, tree, curr_array, depth):
     return curr_array
 
 def get_category_df():
+    """
+    Fetches categories for annex and non-annex countries from array formatted into a table from a tree (Increases readability).
+    :return: Pandas dataframe containing measurements categories array for annex and non-annex countries.
+    """
     print("Beginning to fetch categories from API")
     a_root_array = np.array([annex1_reader.category_tree.all_nodes()[0].identifier, '', 'Totals', 0])
     n_root_array = np.array([nannex1_reader.category_tree.all_nodes()[0].identifier, '', 'Totals', 0])
@@ -260,6 +265,12 @@ def get_category_df():
 # Runtime of the queries could be >30 minutes.
 
 def get_query_df(all_category, annex_cutoff):
+    """
+    Queries data values from all categories in the selected list.
+    :param all_category: All unique categories contained in the annex and non-annex list
+    :param annex_cutoff: Category code cut-off that differentiates annex categories from non-annex categories
+    :return: Pandas dataframe containing measurements categories array for annex and non-annex countries.
+    """
     print("Beginning to fetch queries from API")
     a_party_codes = annex1_reader.parties['code']
     n_party_codes = nannex1_reader.parties['code']
