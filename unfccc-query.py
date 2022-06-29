@@ -121,6 +121,10 @@ def get_party_df():
 
 # Annex I
 def get_measure_type_df():
+    """
+    Fetches measurement types from annex and non-annex list from the API.
+    :return: Pandas dataframe containing measurement types from annex and non-annex list in the API.
+    """
     print("Beginning to fetch measurement types from API")
     a_mt_root = annex1_reader.measure_tree.all_nodes()[0].identifier  # referencing root
     a_mt_nodes = annex1_reader.measure_tree.children(a_mt_root)
@@ -155,6 +159,10 @@ def get_measure_type_df():
 
 # Annex I
 def get_measure_df(all_mt):
+    """
+    Fetches measurements from annex and non-annex list from the API.
+    :return: Pandas dataframe containing measurements from annex and non-annex list in the API.
+    """
     print("Beginning to fetch measurements from API")
     a_measure_array = []
 
