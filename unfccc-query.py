@@ -158,16 +158,16 @@ def get_measure_type_df():
 #       the primary key
 
 # Annex I
-def get_measure_df(all_mt):
+def get_measure_df(mt_df):
     """
     Fetches measurements from annex and non-annex list from the API.
-    :param all_mt: Measurement type for each measurment
+    :param mt_df: Measurement type for each measurment
     :return: Pandas dataframe containing measurements from annex and non-annex list in the API.
     """
     print("Beginning to fetch measurements from API")
     a_measure_array = []
 
-    for mt in all_mt.index.tolist():
+    for mt in mt_df.index.tolist():
         children = annex1_reader.measure_tree.children(int(mt))
 
         for node in children:
@@ -179,7 +179,7 @@ def get_measure_df(all_mt):
     # Non-Annex I
     n_measure_array = []
 
-    for mt in all_mt.index.tolist():
+    for mt in mt_df.index.tolist():
         children = nannex1_reader.measure_tree.children(int(mt))
 
         for node in children:
@@ -227,7 +227,6 @@ def format_category(cid, tree, curr_array, depth):
                     else:
                         tag_split[0] = parent_tag + '.' + tag_split[1]
                     tree.update_node(node.identifier, tag=(tag_split[0] + '  ' + tag_split[1]))
-                    print(tag_split)
             curr_array = np.vstack([curr_array, np.array([int(node.identifier), tag_split[0], tag_split[1], depth])])
             curr_array = format_category(node.identifier, tree, curr_array, depth)
 
@@ -274,43 +273,62 @@ def get_query_df(all_category, annex_cutoff):
     print("Beginning to fetch queries from API")
     a_party_codes = annex1_reader.parties['code']
     n_party_codes = nannex1_reader.parties['code']
-    category_ids = list(map(int, all_category['CategoryID']))
 
-    query_df = pd.DataFrame()
+    category_ids = list(map(int, all_category.index))
 
-    for cid in category_ids[:annex_cutoff]:
+    a_query_dict = {}
+    n_query_dict = {}
+
+    for cid in category_ids[:10]:
         try:
+            print("Attempting fetching query for CategoryID: " + str(cid))
             query = annex1_reader.query(party_codes=a_party_codes, category_ids=[cid])
         except unfccc_di_api.NoDataError:
             continue
         else:
-            query_df = pd.concat([query_df, query], ignore_index=True)
+            query['AnnexID'] = 1
+            query['CategoryID'] = cid
+            a_query_dict[cid] = query
+            print("Fetching successful for CategoryID: " + str(cid))
 
-    for cid in category_ids[annex_cutoff:]:
+    for cid in category_ids[annex_cutoff:annex_cutoff+10]:
         try:
+            print("Attempting fetching query for CategoryID: " + str(cid))
             query = nannex1_reader.query(party_codes=n_party_codes, category_ids=[cid])
         except unfccc_di_api.NoDataError:
             continue
         else:
-            query_df = pd.concat([query_df, query], ignore_index=True)
+            query['AnnexID'] = 0
+            query['CategoryID'] = cid
+            n_query_dict[cid] = query
+            print("Fetching successful for CategoryID: " + str(cid))
 
     print("Finished fetching queries from API")
-    return query_df
+    return (a_query_dict, n_query_dict)
 
 
 def main():
-    # unit_df = get_unit_df()
+    unit_df = get_unit_df()
     gas_df = get_gas_df()
-    # class_df = get_class_df()
-    # year_df = get_year_df()
-    # annex_df = get_annex_df()
-    # party_df = get_party_df()
-    # measure_type_df = get_measure_type_df()
-    # measure_type_df.to_csv('./all_measures_types.csv')
-    # measure_df = get_measure_df(measure_type_df)
+    class_df = get_class_df()
+    year_df = get_year_df()
+    annex_df = get_annex_df()
+    party_df = get_party_df()
+    measure_type_df = get_measure_type_df()
+    measure_type_df.to_csv('./all_measures_types.csv')
+    measure_df = get_measure_df(measure_type_df)
     category_df, annex_cutoff = get_category_df()
-    print(category_df)
-    # query_df = get_query_df(category_df, annex_cutoff)
+
+    query_tuple = get_query_df(category_df, annex_cutoff)
+
+
+    ### Uncomment below to export everything to .csv ###
+
+    # for k, v in query_tuple[0].items():
+    #     v.to_csv('./Annex1_Query_' + str(k) + '.csv')
+    #
+    # for k, v in query_tuple[1].items():
+    #     v.to_csv('./Non_Annex1_Query_' + str(k) + '.csv')
     #
     # unit_df.to_csv('./units.csv', header=True)
     # gas_df.to_csv('./gases.csv', header=True)
@@ -318,10 +336,7 @@ def main():
     # year_df.to_csv('./years.csv')
     # annex_df.to_csv('./annexes.csv')
     # party_df.to_csv('./parties.csv')
-    #
     # measure_df.to_csv('./measures.csv')
     # category_df.to_csv('./categories.csv')
-    # query_df.to_csv('./queries.csv')
-
 
 main()
