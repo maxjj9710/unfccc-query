@@ -368,6 +368,6 @@ def main():
     # party_df.to_csv('./parties.csv')
     # measure_type_df.to_csv('./measurement_types.csv')
     # measure_df.to_csv('./measurements.csv')
-    # # category_df.to_csv('./categories.csv')
+    # category_df.to_csv('./categories.csv')
 
 main()
