@@ -18,11 +18,14 @@ print('API Connected')
 # Units
 def get_unit_df():
     """
-    Fetches all units present in both annex readers.
+    Fetches all units from both annex and non-annex readers of the API.
     :return: Pandas dataframe containing all units from the API.
     """
     print("Beginning to fetch units from API")
-    result = pd.concat([annex1_reader.units, nannex1_reader.units], ignore_index=False).drop_duplicates() # combining results from both inventory
+
+    # combining results from both inventory
+    result = pd.concat([annex1_reader.units, nannex1_reader.units], ignore_index=False).drop_duplicates()
+
     print("Finished fetching units from API")
     return result
 
@@ -30,11 +33,14 @@ def get_unit_df():
 # Gases
 def get_gas_df():
     """
-    Fetches all gases present in both annex readers.
+    Fetches all gases from both annex and non-annex readers of the API.
     :return: Pandas dataframe containing all gases from the API.
     """
     print("Beginning to fetch gases from API")
-    result = pd.concat([annex1_reader.gases, nannex1_reader.gases], ignore_index=False).drop_duplicates() # combining results from both inventory
+
+    # combining results from both inventory
+    result = pd.concat([annex1_reader.gases, nannex1_reader.gases], ignore_index=False).drop_duplicates()
+
     print("Finished fetching gases from API")
     return result
 
@@ -43,11 +49,14 @@ def get_gas_df():
 # Classifications
 def get_class_df():
     """
-    Fetches all classifications present in both annex readers.
+    Fetches all classifications from both annex and non-annex readers of the API.
     :return: Pandas dataframe containing all classifications from the API.
     """
     print("Beginning to fetch classifications from API")
-    result = pd.concat([annex1_reader.classifications, nannex1_reader.classifications], ignore_index=False).drop_duplicates() # combining results from both inventory
+
+    # combining results from both inventory
+    result = pd.concat([annex1_reader.classifications, nannex1_reader.classifications], ignore_index=False).drop_duplicates()
+
     print("Finished fetching classifications from API")
     return result
 
@@ -56,15 +65,19 @@ def get_class_df():
 # Years
 def get_year_df():
     """
-    Fetches all years present in both annex readers.
+    Fetches all years from both annex and non-annex readers of the API.
     :return: Pandas dataframe containing all years from the API.
     """
     print("Beginning to fetch years from API")
+
+    # combining results from both inventory
     result = pd.concat([annex1_reader.years, nannex1_reader.years],
-                       ignore_index=False).drop_duplicates()  # combining results from both inventory
+                       ignore_index=False).drop_duplicates()
+
     print("Finished fetching years from API")
     result.rename(columns={'name': '[YEAR]'}, inplace=True)
 
+    # reducing 'Last Inventory Year (YEAR)' to just 'YEAR'
     last_inv_yr = result.iloc[len(result) - 1, result.columns.get_loc("[YEAR]")]
 
     if len(last_inv_yr) > 4:
@@ -79,24 +92,25 @@ def get_year_df():
 # Not initially part of the API, but could be useful for differentiation for databases
 def get_annex_df():
     """
-    Fetches annex and non-annex list from the API.
-    :return: Pandas dataframe containing annex and non-annex list from the API.
+    Creates an annex and non-annex identification dataframe to help seperate and identify which data belongs to which API reader.
+    :return: Pandas dataframe containing annex and non-annex identification based on API.
     """
     print("Beginning to fetch annex from API")
+
     annex_array = np.array([[0, 'Non-Annex I', 'Countries considered by UN as developing countries'],
                             [1, 'Annex I', 'Countries considered by UN as developed countries']])
     result = pd.DataFrame(annex_array, columns=['AnnexID', 'AnnexName', 'AnnexDescr'])
+
     print("Finished fetching annex from API")
     return result
-
 
 
 ##########################################
 # Parties (Countries)
 def get_party_df():
     """
-    Fetches countries from annex and non-annex list from the API.
-    :return: Pandas dataframe containing countries from annex and non-annex list in the API.
+    Fetches countries from both annex and non-annex readers of the API.
+    :return: Pandas dataframe containing countries from annex and non-annex lists in the API.
     """
     print("Beginning to fetch parties from API")
     n_parties = nannex1_reader.parties
@@ -105,10 +119,12 @@ def get_party_df():
     # appending foreign key
     n_parties['AnnexID'] = 0
     a_parties['AnnexID'] = 1
+
+    # combining results from both inventory
     result = pd.concat([n_parties, a_parties], ignore_index=False).drop_duplicates().drop('noData', axis=1)
+
     print("Finished fetching parties from API")
     return result
-
 
 
 ##########################################
@@ -119,13 +135,15 @@ def get_party_df():
 # NOTE: Auto-increment is not used because each measurement has a specific ID used for querying, which has been set as
 #       the primary key
 
-# Annex I
+
 def get_measure_type_df():
     """
-    Fetches measurement types from annex and non-annex list from the API.
+    Fetches measurement types from both annex readers' `measure_tree`.
     :return: Pandas dataframe containing measurement types from annex and non-annex list in the API.
     """
     print("Beginning to fetch measurement types from API")
+
+    # Annex I
     a_mt_root = annex1_reader.measure_tree.all_nodes()[0].identifier  # referencing root
     a_mt_nodes = annex1_reader.measure_tree.children(a_mt_root)
     a_mt_array = []
@@ -160,8 +178,9 @@ def get_measure_type_df():
 # Annex I
 def get_measure_df(mt_df):
     """
-    Fetches measurements from annex and non-annex list from the API.
-    :param mt_df: Measurement type for each measurment
+    Fetches measurements from both annnex readers' `measure_tree`. Requires the returned dataframe from
+    `get_measure_type_df` as parameter `mt_df`.
+    :param mt_df: Dataframe containing measurement types returned from function `get_measure_type_df`
     :return: Pandas dataframe containing measurements from annex and non-annex list in the API.
     """
     print("Beginning to fetch measurements from API")
@@ -205,7 +224,8 @@ def get_measure_df(mt_df):
 def format_category(cid, tree, curr_array, depth):
     """
     Recursively traverses the category treelib object based on given reader. If there exists children for the current
-    node, append the data to curr_array and call its children; otherwise move on to the next node.
+    node, append the data to curr_array and call its children; otherwise move on to the next node. Categories with no
+    prefix tags will have one created by appending the category name with its parent node's prefix tag.
     :param cid: Query ID for the current node
     :param tree: Deep copied category treelib object
     :param curr_array: Current array containing all categories
@@ -218,6 +238,8 @@ def format_category(cid, tree, curr_array, depth):
     if nodes:
         for node in nodes:
             tag_split = node.tag.split('  ')
+
+            # creating prefix tag if none
             if len(tag_split) == 1:
                 tag_split.insert(0, '')
                 if depth > 0:
@@ -227,20 +249,26 @@ def format_category(cid, tree, curr_array, depth):
                     else:
                         tag_split[0] = parent_tag + '.' + tag_split[1]
                     tree.update_node(node.identifier, tag=(tag_split[0] + '  ' + tag_split[1]))
+
             curr_array = np.vstack([curr_array, np.array([int(node.identifier), tag_split[0], tag_split[1], depth])])
             curr_array = format_category(node.identifier, tree, curr_array, depth)
 
     return curr_array
 
+
 def get_category_df():
     """
-    Fetches categories for annex and non-annex countries from array formatted into a table from a tree (Increases readability).
-    :return: Pandas dataframe containing measurements categories array for annex and non-annex countries.
+    Fetches categories for annex and non-annex countries from array formatted into a table from a tree
+    (Increases readability). Uses the helper method `format_category` to recursively transverse the `category_tree`
+    object from the API.
+    :return: Pandas dataframe containing all categories in the API as well as the cutoff index between the two annex
+    readers' CategoryIDs.
     """
     print("Beginning to fetch categories from API")
     a_root_array = np.array([annex1_reader.category_tree.all_nodes()[0].identifier, '', 'Totals', 0])
     n_root_array = np.array([nannex1_reader.category_tree.all_nodes()[0].identifier, '', 'Totals', 0])
 
+    # creating deep copies of the category tree for altering
     a_deep_tree = tl.tree.Tree(tree=annex1_reader.category_tree, deep=True)
     n_deep_tree = tl.tree.Tree(tree=nannex1_reader.category_tree, deep=True)
 
@@ -254,6 +282,7 @@ def get_category_df():
 
     result_df, a_category_length = pd.concat([a_category_df, n_category_df], ignore_index=False).\
                                        drop_duplicates().set_index('CategoryID'), len(a_category_df)
+
     print("Finished fetching categories from API")
     return result_df, a_category_length
 
@@ -265,10 +294,10 @@ def get_category_df():
 
 def get_query_df(all_category, annex_cutoff):
     """
-    Queries data values from all categories in the selected list.
+    Fetches all matching queries from both annex and non-annex readers of the API.
     :param all_category: All unique categories contained in the annex and non-annex list
     :param annex_cutoff: Category code cut-off that differentiates annex categories from non-annex categories
-    :return: Pandas dataframe containing measurements categories array for annex and non-annex countries.
+    :return: Tuple containing all fetchable query results through the API.
     """
     print("Beginning to fetch queries from API")
     a_party_codes = annex1_reader.parties['code']
@@ -279,7 +308,7 @@ def get_query_df(all_category, annex_cutoff):
     a_query_dict = {}
     n_query_dict = {}
 
-    for cid in category_ids[:10]:
+    for cid in category_ids[:annex_cutoff]:
         try:
             print("Attempting fetching query for CategoryID: " + str(cid))
             query = annex1_reader.query(party_codes=a_party_codes, category_ids=[cid])
@@ -291,11 +320,12 @@ def get_query_df(all_category, annex_cutoff):
             a_query_dict[cid] = query
             print("Fetching successful for CategoryID: " + str(cid))
 
-    for cid in category_ids[annex_cutoff:annex_cutoff+10]:
+    for cid in category_ids[annex_cutoff:]:
         try:
             print("Attempting fetching query for CategoryID: " + str(cid))
             query = nannex1_reader.query(party_codes=n_party_codes, category_ids=[cid])
         except unfccc_di_api.NoDataError:
+            print("Fetching failed for CategoryID: " + str(cid))
             continue
         else:
             query['AnnexID'] = 0
@@ -315,7 +345,7 @@ def main():
     annex_df = get_annex_df()
     party_df = get_party_df()
     measure_type_df = get_measure_type_df()
-    measure_type_df.to_csv('./all_measures_types.csv')
+
     measure_df = get_measure_df(measure_type_df)
     category_df, annex_cutoff = get_category_df()
 
@@ -336,7 +366,8 @@ def main():
     # year_df.to_csv('./years.csv')
     # annex_df.to_csv('./annexes.csv')
     # party_df.to_csv('./parties.csv')
-    # measure_df.to_csv('./measures.csv')
-    # category_df.to_csv('./categories.csv')
+    # measure_type_df.to_csv('./measurement_types.csv')
+    # measure_df.to_csv('./measurements.csv')
+    # # category_df.to_csv('./categories.csv')
 
 main()
